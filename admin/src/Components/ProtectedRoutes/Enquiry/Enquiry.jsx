@@ -1,103 +1,106 @@
-import React,{useState,useEffect}from 'react'
-import axios from 'axios'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { client } from '../../clientaxios/Clientaxios';
+import Swal from 'sweetalert2';
 
-import { client } from '../../clientaxios/Clientaxios'
-export default function Enquiry() {
-  const [formDataList, setFormDataList] = useState([]);
+const EnquiryPage = () => {
+  const [enquiryDataList, setEnquiryDataList] = useState([]);
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await client.get('/enquiry');
-      console.log('Response from backend:', response.data);
-
-      // Assuming the data structure is { enquiry: [...] }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/enquiry/enquiries');
+        // Check if the response data is defined and is an array
+        if (response.data && Array.isArray(response.data)) {
+          setEnquiryDataList(response.data);
+        } else {
+          console.error('Enquiry data is not an array or undefined:', response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching enquiry data:', error);
+      }
+    };
+    
+    
   
-      setFormDataList(response.data.contacts); // <-- Here's the issue
-    } catch (error) {
-      console.error('Error fetching form data:', error);
-      // Error handling
-    }
-  };
-
-  fetchData();
-}, []);
- 
-  
-  
-  
-  // Empty dependency array ensures useEffect runs only once, similar to componentDidMount
-  
-  
-  
+    fetchData();
+  }, []);
   
   const handleDelete = async (id) => {
-    try {
-      // Make a DELETE request to your backend API to delete the entry with the specified id
-      await client.delete(`/enquiry/${id}`);
+    // Confirm deletion with SweetAlert
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this enquiry!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+      reverseButtons: true
+    });
 
-      // Update the state to reflect the changes
-      setFormDataList((prevData) => prevData.filter((formData) => formData._id !== id));
-    } catch (error) {
-      console.error('Error deleting form data:', error);
+    if (result.isConfirmed) {
+      try {
+        await client.delete(`/enquiry/enquiries/${id}`);
+        setEnquiryDataList((prevData) => prevData.filter(enquiryData => enquiryData._id !== id));
+        Swal.fire(
+          'Deleted!',
+          'Enquiry has been deleted.',
+          'success'
+        );
+      } catch (error) {
+        console.error('Error deleting enquiry data:', error);
+        if (error.response && error.response.data && error.response.data.error) {
+          console.error('Server Error:', error.response.data.error);
+        } else {
+          console.error('Error deleting data. Please try again.');
+        }
+      }
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      Swal.fire(
+        'Cancelled',
+        'Your enquiry is safe :)',
+        'error'
+      );
     }
-  };
-
+  }; 
 
   
-
   return (
-    <div>
-
-    {/*  Header Start */}
-  
-    {/*  Header End */}
-    <div className="container-fluid">
-    <div className="container mt-4">
-      <h2>Enquiry Data</h2>
-      {formDataList.length > 0 ? (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>UserName</th>
-              <th>Email</th>
-              <th>Mobile</th>
-              <th>Address</th>
-              <th>State</th>
-              <th>Childname</th>
-              <th>ChildGrade</th>
-              <th>Message</th>
-              <th>Action</th>
+    <div className="container mt-4" style={{ margin: '10px' }}>
+      <h1 className="text-center">Enquiry Page Admin Panel</h1>
+      <table className="table table-striped table-bordered text-left">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Subject</th>
+            <th>Message</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {enquiryDataList.map(enquiryData => (
+            <tr key={enquiryData._id}>
+              <td>{enquiryData.name}</td>
+              <td>{enquiryData.email}</td>
+              <td>{enquiryData.phoneNumber}</td>
+              <td>{enquiryData.subject}</td>
+              <td>{enquiryData.message}</td>
+              <td>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleDelete(enquiryData._id)}
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {formDataList.map((formData) => (
-              <tr key={formData._id}>
-                <td>{formData.username}</td>
-                <td>{formData.email}</td>
-                <td>{formData.mobile}</td>
-                <td>{formData.Address}</td>
-                <td>{formData.state}</td>
-                <td>{formData.childname}</td>
-                <td>{formData.childgrade}</td>
-                <td>{formData.message}</td>
-                <td>
-                  <button className="btn btn-danger" onClick={() => handleDelete(formData._id)}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No data available</p>
-      )}
+          ))}
+        </tbody>
+      </table>
     </div>
+  );
+};
 
-</div>
-  </div>
-
-  )
-}
-
+export default EnquiryPage;

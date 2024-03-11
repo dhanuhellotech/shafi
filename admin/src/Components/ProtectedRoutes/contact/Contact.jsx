@@ -1,98 +1,117 @@
-import React,{useState,useEffect}from 'react'
-import axios from 'axios'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { client } from '../../clientaxios/Clientaxios';
+import Swal from 'sweetalert2';
 
-import { client } from '../../clientaxios/Clientaxios'
-export default function Contact() {
-  const [formDataList, setFormDataList] = useState([]);
-
+const ContactPage = () => {
+  const [contactDataList, setContactDataList] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await client.get('/contacts');
-        console.log('Response from backend:', response.data);
-
-        // Assuming the data structure is { contacts: [...] }
-        const contacts = response.data.contacts || [];
-        setFormDataList(contacts);
+        const response = await axios.get('http://localhost:5000/contact/contacts/getAll');
+        // Check if the response data is an array
+        if (Array.isArray(response.data.data)) {
+          setContactDataList(response.data.data);
+        } else {
+          console.error('Contact data is not an array:', response.data.data);
+        }
       } catch (error) {
-        console.error('Error fetching form data:', error);
+        console.error('Error fetching contact data:', error);
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
 
+  const handleDelete = async (id) => {
+    // Confirm deletion with SweetAlert
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this contact!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await client.delete(`/contact/contacts/${id}`);
+        setContactDataList((prevData) => prevData.filter(contactData => contactData._id !== id));
+        Swal.fire(
+          'Deleted!',
+          'Contact has been deleted.',
+          'success'
+        );
+      } catch (error) {
+        console.error('Error deleting contact data:', error);
         if (error.response && error.response.data && error.response.data.error) {
           console.error('Server Error:', error.response.data.error);
         } else {
-          console.error('Error fetching data. Please try again.');
+          console.error('Error deleting data. Please try again.');
         }
       }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleDelete = async (id) => {
-    try {
-      // Make a DELETE request to your backend endpoint to delete the contact with the specified id
-      await client.delete(`/contacts/${id}`);
-
-      // Update the state after successful deletion
-      setFormDataList((prevData) => prevData.filter((contact) => contact._id !== id));
-    } catch (error) {
-      console.error('Error deleting contact:', error);
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      Swal.fire(
+        'Cancelled',
+        'Your contact is safe :)',
+        'error'
+      );
     }
-  };
-
-
-  
+  }; 
 
   return (
-    <div>
+    <div className="container mt-4" style={{margin:'10px'}}>
+      <h1 className="text-center">Contact Page Admin Panel</h1>
+      <table className="table table-striped table-bordered text-left">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Study Center Comments</th>
+            <th>Study Center Subjects</th>
+            <th>Hospital Comments</th>
+            <th>Hospital Subjects</th>
+            <th>Treatments Comments</th>
+            <th>Treatments Subjects</th>
+            <th>Products Comments</th>
+            <th>Products Subjects</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+        {contactDataList.map(contactData => (
+  <tr key={contactData._id}>
+    <td>{contactData.name}</td>
+    <td>{contactData.email}</td>
+    <td>{contactData.phoneNumber}</td>
+    <td>{contactData.studyCenter ? contactData.studyCenter.comments : ''}</td>
+    <td>{contactData.studyCenter ? contactData.studyCenter.subjects : ''}</td>
+    <td>{contactData.hospital ? contactData.hospital.comments : ''}</td>
+    <td>{contactData.hospital ? contactData.hospital.subjects : ''}</td>
+    <td>{contactData.treatments ? contactData.treatments.comments : ''}</td>
+    <td>{contactData.treatments ? contactData.treatments.subjects : ''}</td>
+    <td>{contactData.products ? contactData.products.comments : ''}</td>
+    <td>{contactData.products ? contactData.products.subjects : ''}</td>
+    <td>
+      <button
+        className="btn btn-danger"
+        onClick={() => handleDelete(contactData._id)}
+      >
+        Delete
+      </button>
+    </td>
+  </tr>
+))}
 
-    {/*  Header Start */}
-  
-    {/*  Header End */}
-    <div className="container-fluid">
-    <div className="container mt-4">
-      <h2>Contact Data</h2>
-      {formDataList.length > 0 ? (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>UserName</th>
-              <th>Email</th>
-              <th>Location</th>
-              <th>Mobile</th>
-              <th>State</th>
-              <th>City</th>
-              <th>Comments</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {formDataList.map((formData) => (
-              <tr key={formData._id}>
-                <td>{formData.username}</td>
-                <td>{formData.email}</td>
-                <td>{formData.location}</td>
-                <td>{formData.mobile}</td>
-                <td>{formData.state}</td>
-                <td>{formData.city}</td>
-                <td>{formData.Comments}</td>
-                <td>
-                  <button className="btn btn-danger" onClick={() => handleDelete(formData._id)}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No data available</p>
-      )}
+        </tbody>
+      </table>
     </div>
+  );
+};
 
-</div>
-  </div>
-
-  )
-}
-
+export default ContactPage;
+  

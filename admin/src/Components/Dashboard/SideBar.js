@@ -29,7 +29,10 @@ const navigate =useNavigate();
   
 <ButtonLink path='/product' text="Product"/>
 <ButtonLink path='/admission' text="StudyCenterForms"/>
-          
+<ButtonLink path='/contact' text="Contact"/>    
+<ButtonLink path='/enquiry' text="Enquiry"/>   
+<ButtonLink path='/treatments' text="Treatments Page"/>   
+<ButtonLink path='/course' text="Study Course"/>   
            <button 
   onClick={logout}
         style={{ 

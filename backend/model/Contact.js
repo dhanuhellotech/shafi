@@ -14,17 +14,37 @@ const contactSchema = new mongoose.Schema({
   phoneNumber: {
     type: String
   },
-  comments: {
-    type: String,
-    required: true
+  studyCenter: {
+    comments: {
+      type: String
+    },
+    subjects: {
+      type: String
+    }
   },
-  subject: {
-    type: String
+  hospital: {
+    comments: {
+      type: String
+    },
+    subjects: {
+      type: String
+    }
   },
-  category: {
-    type: String,
-    enum: ['studycenter', 'hospital', 'treatments', 'products'],
-    required: true
+  treatments: {
+    comments: {
+      type: String
+    },
+    subjects: {
+      type: String
+    }
+  },
+  products: {
+    comments: {
+      type: String
+    },
+    subjects: {
+      type: String
+    }
   }
 });
 

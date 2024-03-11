@@ -9,6 +9,10 @@ import {useSelector,useDispatch} from "react-redux"
 import { openMenu,closeMenu } from "../Redux/MenuSlice";
 import Products from "../ProtectedRoutes/products/Products";
 import Admission from "../ProtectedRoutes/admission/Admission";
+import Contact from '../ProtectedRoutes/contact/Contact.jsx'
+import Enquiry from "../ProtectedRoutes/Enquiry/Enquiry.jsx";
+import Treatments from "../ProtectedRoutes/Treatment/Treatment.jsx";
+import Course from "../ProtectedRoutes/course/course.jsx"
 const DashboardLayout = ({ children,showMenu}) => {
   const dispatch = useDispatch()
   const [setnewDisplay, setsetNewDisplay] = useState(false)
@@ -76,6 +80,10 @@ const DashboardLayout = ({ children,showMenu}) => {
             <Route path="/" element={<Home/>}/>
       <Route path="/product" element={<Products/>}/>
       <Route path="/admission" element={<Admission/>}/>
+      <Route path="/contact" element={<Contact/>}/>
+      <Route path="/enquiry" element={<Enquiry/>}/>
+      <Route path="/treatments" element={<Treatments/>}/>
+      <Route path="/course" element={<Course/>}/>
           </Routes>
         </Grid>
       </Grid>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { client } from '../../clientaxios/Clientaxios';
+import Swal from 'sweetalert2';
 
 const Admission = () => {
   const [formDataList, setFormDataList] = useState([]);
@@ -19,16 +20,40 @@ const Admission = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    try {
-      await client.delete(`/study/${id}`);
-      setFormDataList((prevData) => prevData.filter(formData => formData._id !== id));
-    } catch (error) {
-      console.error('Error deleting form data:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        console.error('Server Error:', error.response.data.error);
-      } else {
-        console.error('Error deleting data. Please try again.');
+    // Confirm deletion with SweetAlert
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to recover this form data!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await client.delete(`/study/${id}`);
+        setFormDataList((prevData) => prevData.filter(formData => formData._id !== id));
+        Swal.fire(
+          'Deleted!',
+          'Form data has been deleted.',
+          'success'
+        );
+      } catch (error) {
+        console.error('Error deleting form data:', error);
+        if (error.response && error.response.data && error.response.data.error) {
+          console.error('Server Error:', error.response.data.error);
+        } else {
+          console.error('Error deleting data. Please try again.');
+        }
       }
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      Swal.fire(
+        'Cancelled',
+        'Your form data is safe :)',
+        'error'
+      );
     }
   }; 
 

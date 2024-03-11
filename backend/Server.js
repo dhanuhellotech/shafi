@@ -5,6 +5,9 @@ const cors = require('cors');
 const productRoutes= require('./Router/productRoutes')
 const studyCenterRoutes = require('./Router/studyCenterRoutes');
 const contactRoutes = require('./Router/contactRoutes');
+const enquiryRoutes = require( './Router/enquiryRouter' )
+const treatmentRouter = require('./Router/treatmentRouter');
+const courseRoutes = require('./Router/courseRouter');
 require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000; // Set the port number
@@ -31,6 +34,10 @@ app.get('/', (req, res) => {
 app.use('/products', productRoutes);
 app.use('/study', studyCenterRoutes);
 app.use('/contact', contactRoutes);
+app.use('/enquiry', enquiryRoutes);
+app.use('/treatments', treatmentRouter);
+app.use('/course',courseRoutes);
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
