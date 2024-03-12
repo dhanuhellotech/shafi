@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { client } from '../../clientaxios/Clientaxios';
+import Swal from 'sweetalert2';
 
 export default function Course() {
   const [courseName, setCourseName] = useState('');
@@ -34,11 +35,17 @@ export default function Course() {
       formData.append('courseBriefDescription', courseBriefDescription);
       formData.append('image', imageFile);
 
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+
       if (editingCourseId) {
-        await client.put(`/course/${editingCourseId}`, formData);
+        await client.put(`/course/${editingCourseId}`, formData, config);
         setEditingCourseId(null);
       } else {
-        await client.post('/course/resize', formData);
+        await client.post('/course/resize', formData, config);
       }
 
       clearForm();
@@ -61,12 +68,36 @@ export default function Course() {
 
   const handleDeleteCourse = async (courseId) => {
     try {
-      await client.delete(`/course/${courseId}`);
-      fetchCourses();
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: 'You will not be able to recover this course!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, cancel!',
+        reverseButtons: true
+      });
+  
+      if (result.isConfirmed) {
+        await client.delete(`/course/${courseId}`);
+        fetchCourses();
+        Swal.fire(
+          'Deleted!',
+          'Your course has been deleted.',
+          'success'
+        );
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire(
+          'Cancelled',
+          'Your course is safe :)',
+          'error'
+        );
+      }
     } catch (error) {
       console.error('Error deleting course:', error);
     }
   };
+  
 
   const clearForm = () => {
     setCourseName('');
@@ -76,6 +107,7 @@ export default function Course() {
     setImageFile(null);
     setEditingCourseId(null);
   };
+
 
   return (
     <div>

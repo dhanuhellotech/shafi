@@ -1,4 +1,6 @@
-const Treatment = require('../model/treatment');
+// controllers/treatmentController.js
+
+const Treatment = require('../model/Treatment');
 const multer = require('../middleware/upload');
 const sharp = require("sharp");
 const cloudinary = require("../middleware/cloudinary");
@@ -17,7 +19,7 @@ const getAllTreatments = async (req, res) => {
 const resizeImage = async (req, res, next) => {
   try {
     if (!req.file) {
-      throw new Error('No file uploaded');
+      return next(); // If no file uploaded, move to next middleware
     }
 
     const resizedImage = await sharp(req.file.buffer)
@@ -36,6 +38,10 @@ const resizeImage = async (req, res, next) => {
 
 const addImagetoCloud = async (req, res, next) => {
   try {
+    if (!req.image) {
+      return next(); // If no image resized, move to next middleware
+    }
+
     const result = await cloudinary.uploader.upload(`data:image/jpeg;base64,${req.image}`, {
       folder: "treatments" // Make sure the folder parameter is set to "treatments"
     });
@@ -58,13 +64,18 @@ const createTreatment = async (req, res) => {
   try {
     const { title, description, briefDescription } = req.body;
 
-    const newTreatment = new Treatment({
+    let newTreatmentData = {
       title,
       description,
       briefDescription,
-      pid: req.result.public_id,
-      image: req.result.secure_url,
-    });
+    };
+
+    if (req.result) {
+      newTreatmentData.pid = req.result.public_id;
+      newTreatmentData.image = req.result.secure_url;
+    }
+
+    const newTreatment = new Treatment(newTreatmentData);
 
     await newTreatment.save();
     res.status(201).json(newTreatment);
@@ -82,14 +93,19 @@ const updateTreatment = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required for updating a treatment' });
     }
 
+    let updatedTreatmentData = {
+      title,
+      description,
+      briefDescription,
+    };
+
+    if (req.result) {
+      updatedTreatmentData.image = req.result.secure_url ? req.result.secure_url : undefined;
+    }
+
     const updatedTreatment = await Treatment.findByIdAndUpdate(
       treatmentId,
-      {
-        title,
-        description,
-        briefDescription,
-        image: req.result.secure_url ? req.result.secure_url : undefined,
-      },
+      updatedTreatmentData,
       { new: true }
     );
 
