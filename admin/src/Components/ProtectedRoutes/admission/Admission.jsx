@@ -87,7 +87,8 @@ const Admission = () => {
               <td>{formData.fatherName}</td>
               <td>{formData.fatherOccupation}</td>
               <td>{formData.email}</td>
-              <td>{formData.dateOfBirth}</td>
+              <td>{formData.dateOfBirth.split('T')[0]}</td>
+
               <td>{formData.gender}</td>
               <td>{formData.maritalStatus}</td>
               <td>{formData.nationality}</td>

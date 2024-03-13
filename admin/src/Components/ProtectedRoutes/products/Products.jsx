@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { client } from '../../clientaxios/Clientaxios';
+import Swal from 'sweetalert2'
 
 export default function Products() {
   const [title, setTitle] = useState('');
@@ -50,12 +51,27 @@ export default function Products() {
 
   const handleDelete = async (id) => {
     try {
-      await client.delete(`/products/${id}`);
-      fetchProducts();
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: 'You will not be able to recover this product!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, keep it'
+      });
+  
+      if (result.isConfirmed) {
+        await client.delete(`/products/${id}`);
+        fetchProducts();
+        Swal.fire('Deleted!', 'Your product has been deleted.', 'success');
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Your product is safe :)', 'error');
+      }
     } catch (error) {
       console.error('Error deleting product:', error);
     }
   };
+  
 
   const fetchProducts = async () => {
     try {

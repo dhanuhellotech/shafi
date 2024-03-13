@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import Swal from 'sweetalert2'
 import { client } from '../../clientaxios/Clientaxios';
 
 export default function Treatments() {
@@ -59,12 +59,27 @@ export default function Treatments() {
 
   const handleDeleteTreatment = async (treatmentId) => {
     try {
-      await client.delete(`/treatments/${treatmentId}`);
-      fetchTreatments();
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: 'You will not be able to recover this treatment!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, keep it'
+      });
+  
+      if (result.isConfirmed) {
+        await client.delete(`/treatments/${treatmentId}`);
+        fetchTreatments();
+        Swal.fire('Deleted!', 'Your treatment has been deleted.', 'success');
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Your treatment is safe :)', 'error');
+      }
     } catch (error) {
       console.error('Error deleting treatment:', error);
     }
   };
+  
 
   const clearForm = () => {
     setTitle('');
